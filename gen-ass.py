@@ -7,7 +7,7 @@ Usage:
     python gen-ass.py <track-dir> <title> <track-num> <duration-sec>
 
 Example:
-    python gen-ass.py 02-恋のにゃんぱとる "恋のにゃんぱとる☆" 02 228
+    python gen-ass.py 02-my-song "Song title" 02 228
 """
 
 import os
