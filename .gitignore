@@ -1,0 +1,33 @@
+# Render output (regenerable)
+*.webm
+*.mp4
+*.srt
+
+# Backups y temporales de edición
+*.bak
+*.bak[0-9]*
+*.manual
+*-raw.ass
+lyrics-timed*.ass
+lyrics-final.ass
+
+# Audio / vocals
+*.flac
+*.wav
+*.mp3
+
+# Whisper / batch
+*.json
+whisper-batch.log
+
+# Carátula con copyright (no se versiona en el toolkit público)
+_shared/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
