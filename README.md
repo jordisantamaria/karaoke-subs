@@ -1,8 +1,8 @@
 # karaoke-subs
 
-[![Trilingual karaoke demo — DAY×DAY](examples/01-day-x-day-30s/preview-poster.jpg)](examples/01-day-x-day-30s/preview.mp4)
+[![Trilingual karaoke demo — DAY×DAY](examples/01-day-x-day-30s/preview.gif)](examples/01-day-x-day-30s/preview.mp4)
 
-▶ **[Play the 28s clip with audio](examples/01-day-x-day-30s/preview.mp4)** — a sample from «DAY×DAY» by 鈴音ひとみ (used with the artist's permission). Source files in [`examples/01-day-x-day-30s/`](examples/01-day-x-day-30s/).
+▶ **[Play the full 28s clip with audio](examples/01-day-x-day-30s/preview.mp4)** — a sample from «DAY×DAY» by 鈴音ひとみ (used with the artist's permission). Source files in [`examples/01-day-x-day-30s/`](examples/01-day-x-day-30s/).
 
 Toolkit for generating **trilingual karaoke** videos (Japanese + romaji + translation)
 from an audio album and its official lyrics. It synchronizes the timing automatically
