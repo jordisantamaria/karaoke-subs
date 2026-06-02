@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Toma un JSON de output de Whisper + un .ass con líneas Kanji (timings provisionales)
-y reescribe el .ass con timings reales basados en el matching texto-a-segmento.
+Takes a Whisper output JSON + an .ass with Kanji lines (provisional timings) and
+rewrites the .ass with real timings based on text-to-segment matching.
 
-Uso:
+Usage:
     python whisper-to-ass.py <whisper.json> <input.ass> <output.ass>
 
-Ejemplo:
+Example:
     python whisper-to-ass.py 01-my-song/whisper.json 01-my-song/lyrics.ass 01-my-song/lyrics-timed.ass
 """
 
@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 def normalize(text: str) -> str:
-    """Normaliza texto para comparación: quita puntuación, espacios, símbolos."""
+    """Normalizes text for comparison: strips punctuation, spaces, symbols."""
     text = re.sub(r"[「」『』（）()【】\[\]、。，．,\.\!\?！？☆♡♪×!\s]+", "", text)
     return text.lower()
 
@@ -28,7 +28,7 @@ def similarity(a: str, b: str) -> float:
 
 
 def secs_to_ass_time(secs: float) -> str:
-    """Convierte segundos a formato H:MM:SS.CC del .ass"""
+    """Converts seconds to the .ass H:MM:SS.CC format"""
     h = int(secs // 3600)
     m = int((secs % 3600) // 60)
     s = secs % 60
@@ -36,7 +36,7 @@ def secs_to_ass_time(secs: float) -> str:
 
 
 def find_best_segment(target: str, segments: list, start_idx: int, window: int = 6) -> tuple[int, float]:
-    """Busca el mejor segmento Whisper que matchee `target`, partiendo de start_idx."""
+    """Finds the best Whisper segment matching `target`, starting from start_idx."""
     best_idx = -1
     best_score = 0.0
     end = min(start_idx + window, len(segments))
@@ -53,12 +53,12 @@ def main(whisper_json_path: Path, input_ass_path: Path, output_ass_path: Path):
         data = json.load(f)
 
     segments = data.get("segments", [])
-    print(f"Whisper devolvió {len(segments)} segmentos.")
+    print(f"Whisper returned {len(segments)} segments.")
 
     with input_ass_path.open("r", encoding="utf-8") as f:
         ass_lines = f.readlines()
 
-    # Extraer líneas Dialogue con style Kanji
+    # Extract Dialogue lines with the Kanji style
     kanji_dialogues = []
     for idx, line in enumerate(ass_lines):
         if not line.startswith("Dialogue:"):
@@ -71,9 +71,9 @@ def main(whisper_json_path: Path, input_ass_path: Path, output_ass_path: Path):
         text = parts[9].strip() if len(parts) > 9 else ""
         kanji_dialogues.append({"idx": idx, "text": text, "parts": parts})
 
-    print(f"Encontradas {len(kanji_dialogues)} líneas Kanji en el .ass.")
+    print(f"Found {len(kanji_dialogues)} Kanji lines in the .ass.")
 
-    # Matching secuencial con ventana
+    # Sequential matching with a window
     last_seg_idx = 0
     matches = []
     for kd in kanji_dialogues:
@@ -90,7 +90,7 @@ def main(whisper_json_path: Path, input_ass_path: Path, output_ass_path: Path):
             })
             last_seg_idx = best_idx + 1
         else:
-            print(f"⚠️  No match para: {kd['text'][:40]} (mejor score: {best_score:.2f})")
+            print(f"⚠️  No match for: {kd['text'][:40]} (best score: {best_score:.2f})")
             matches.append({
                 "kanji_idx": kd["idx"],
                 "kanji_text": kd["text"],
@@ -100,7 +100,7 @@ def main(whisper_json_path: Path, input_ass_path: Path, output_ass_path: Path):
                 "score": best_score,
             })
 
-    # Reescribir .ass con nuevos timings
+    # Rewrite the .ass with the new timings
     output_lines = ass_lines.copy()
     matched_count = 0
     for m in matches:
@@ -116,16 +116,16 @@ def main(whisper_json_path: Path, input_ass_path: Path, output_ass_path: Path):
     with output_ass_path.open("w", encoding="utf-8") as f:
         f.writelines(output_lines)
 
-    print(f"\n✓ {matched_count}/{len(kanji_dialogues)} líneas Kanji con timing nuevo.")
-    print(f"  Escrito: {output_ass_path}")
+    print(f"\n✓ {matched_count}/{len(kanji_dialogues)} Kanji lines with new timing.")
+    print(f"  Written: {output_ass_path}")
 
-    # Reporte de matching
-    print("\n--- Matching detallado ---")
+    # Matching report
+    print("\n--- Detailed matching ---")
     for m in matches:
         if m["seg_text"]:
             print(f"  [{m['score']:.2f}] {m['kanji_text'][:30]:<30} ⇆ {m['seg_text'][:40]}")
         else:
-            print(f"  [SIN MATCH] {m['kanji_text'][:30]}")
+            print(f"  [NO MATCH] {m['kanji_text'][:30]}")
 
 
 if __name__ == "__main__":

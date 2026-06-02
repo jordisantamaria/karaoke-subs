@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Forced alignment de las líneas Kanji de un .ass contra el audio, usando stable-ts.
-Toma el TEXTO como verdad (no deja que whisper decida qué se canta) y solo
-recalcula los tiempos start/end de cada línea Kanji en orden secuencial.
+Forced alignment of the Kanji lines of an .ass against the audio, using stable-ts.
+Takes the TEXT as ground truth (does not let whisper decide what is sung) and only
+recomputes the start/end times of each Kanji line in sequential order.
 
-Las líneas Romaji/Spanish no se tocan aquí: el merge-trilingual.py les copia
-después los tiempos de su Kanji.
+The Romaji/Spanish lines are not touched here: merge-trilingual.py copies the
+times from their Kanji afterwards.
 
-Uso:
+Usage:
     python align-lyrics.py <input.ass> <audio> <output.ass> [model]
 """
 
@@ -28,7 +28,7 @@ def secs_to_ass_time(secs: float) -> str:
 def main(input_path: Path, audio_path: Path, output_path: Path, model_name: str):
     lines = input_path.read_text(encoding="utf-8").splitlines(keepends=True)
 
-    # Índices y texto de las líneas Kanji, en orden
+    # Indices and text of the Kanji lines, in order
     kanji = []  # (line_idx, text)
     for idx, ln in enumerate(lines):
         if not ln.startswith("Dialogue:"):
@@ -38,26 +38,26 @@ def main(input_path: Path, audio_path: Path, output_path: Path, model_name: str)
             kanji.append((idx, parts[9].strip()))
 
     if not kanji:
-        print("⚠️  No hay líneas Kanji con texto.")
+        print("⚠️  No Kanji lines with text.")
         return
 
     text = "\n".join(t for _, t in kanji)
 
     import stable_whisper
-    print(f"→ Cargando modelo whisper '{model_name}'...")
+    print(f"→ Loading whisper model '{model_name}'...")
     model = stable_whisper.load_model(model_name)
-    print(f"→ Alineando {len(kanji)} líneas contra {audio_path.name}...")
+    print(f"→ Aligning {len(kanji)} lines against {audio_path.name}...")
     result = model.align(
         str(audio_path),
         text,
         language="ja",
-        original_split=True,   # respeta los \n como límites de segmento
+        original_split=True,   # respect the \n as segment boundaries
     )
 
     segs = result.segments
     if len(segs) != len(kanji):
-        print(f"⚠️  Segmentos alineados ({len(segs)}) != líneas Kanji ({len(kanji)}).")
-        print("    Se aplican en orden los que coincidan; revisa el resultado.")
+        print(f"⚠️  Aligned segments ({len(segs)}) != Kanji lines ({len(kanji)}).")
+        print("    The matching ones are applied in order; check the result.")
 
     n = min(len(segs), len(kanji))
     for k in range(n):
@@ -68,8 +68,8 @@ def main(input_path: Path, audio_path: Path, output_path: Path, model_name: str)
         lines[idx] = ",".join(parts)
 
     output_path.write_text("".join(lines), encoding="utf-8")
-    print(f"✓ {n} líneas re-sincronizadas por forced alignment.")
-    print(f"  Escrito: {output_path}")
+    print(f"✓ {n} lines re-synced by forced alignment.")
+    print(f"  Written: {output_path}")
 
 
 if __name__ == "__main__":

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Genera lyrics.ass (solo Kanji) y lyrics-fullbackup.ass (trilingüe) a partir de
-lyrics-final.md con placeholder timings repartidos evenly.
+Generates lyrics.ass (Kanji only) and lyrics-fullbackup.ass (trilingual) from
+lyrics-final.md with placeholder timings spread evenly.
 
-Uso:
+Usage:
     python gen-ass.py <track-dir> <title> <track-num> <duration-sec>
 
-Ejemplo:
+Example:
     python gen-ass.py 02-恋のにゃんぱとる "恋のにゃんぱとる☆" 02 228
 """
 
@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-# Nombre del artista (para el header y los créditos). Se toma de KARAOKE_ARTIST.
+# Artist name (for the header and the credits). Taken from KARAOKE_ARTIST.
 ARTIST = os.environ.get("KARAOKE_ARTIST", "")
 
 
@@ -59,7 +59,7 @@ def secs_to_ass(s: float) -> str:
 
 
 def parse_lyrics_md(md_path: Path):
-    """Devuelve lista de (section_name, [(jp, ro, es), ...])."""
+    """Returns a list of (section_name, [(jp, ro, es), ...])."""
     text = md_path.read_text(encoding="utf-8")
     sections = []
     current_section = None
@@ -107,10 +107,10 @@ def generate_ass(track_dir: Path, title: str, track_num: str, duration: float, k
 
     total_lines = sum(len(entries) for _, entries in sections)
     if total_lines == 0:
-        print("⚠️  No se encontraron entries en lyrics-final.md")
+        print("⚠️  No entries found in lyrics-final.md")
         return ""
 
-    # Reservar 8s al inicio para intro instrumental, 5s final
+    # Reserve 8s at the start for the instrumental intro, 5s at the end
     start_offset = 8.0
     end_offset = 5.0
     available = duration - start_offset - end_offset
@@ -148,17 +148,17 @@ def main():
     track_num = sys.argv[3]
     duration = float(sys.argv[4])
 
-    # lyrics.ass: solo Kanji (input para whisper-to-ass)
+    # lyrics.ass: Kanji only (input for whisper-to-ass)
     ass_kanji = generate_ass(track_dir, title, track_num, duration, kanji_only=True)
     (track_dir / "lyrics.ass").write_text(ass_kanji, encoding="utf-8")
-    print(f"✓ Escrito: {track_dir}/lyrics.ass")
+    print(f"✓ Written: {track_dir}/lyrics.ass")
 
-    # lyrics-fullbackup.ass: trilingüe (fuente para merge)
+    # lyrics-fullbackup.ass: trilingual (source for merge)
     ass_full = generate_ass(track_dir, title, track_num, duration, kanji_only=False)
     (track_dir / "lyrics-fullbackup.ass").write_text(ass_full, encoding="utf-8")
-    print(f"✓ Escrito: {track_dir}/lyrics-fullbackup.ass")
+    print(f"✓ Written: {track_dir}/lyrics-fullbackup.ass")
 
-    # Generar dummy.mp4 (cover + audio FLAC del track, baja calidad para Aegisub preview)
+    # Generate dummy.mp4 (cover + the track's FLAC audio, low quality for Aegisub preview)
     import subprocess
     cover = Path(os.environ.get("COVER_IMAGE", Path(__file__).parent / "_shared" / "cover.jpg"))
     music_dir = Path(os.environ.get("MUSIC_DIR", ""))
@@ -173,7 +173,7 @@ def main():
             "-c:a", "aac", "-b:a", "128k", "-shortest",
             "-y", str(dummy_dst)
         ], check=True, capture_output=True)
-        print(f"✓ Generado: {dummy_dst}")
+        print(f"✓ Generated: {dummy_dst}")
 
 
 if __name__ == "__main__":

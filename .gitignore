@@ -3,7 +3,7 @@
 *.mp4
 *.srt
 
-# Backups y temporales de edición
+# Editing backups and temporaries
 *.bak
 *.bak[0-9]*
 *.manual
@@ -20,7 +20,7 @@ lyrics-final.ass
 *.json
 whisper-batch.log
 
-# Carátula con copyright (no se versiona en el toolkit público)
+# Copyrighted cover art (not versioned in the public toolkit)
 _shared/
 
 # Python
@@ -32,5 +32,5 @@ venv/
 # OS
 .DS_Store
 
-# El example de demostración SÍ se versiona (clip + render + .ass)
+# The demo example IS versioned (clip + render + .ass)
 !examples/**

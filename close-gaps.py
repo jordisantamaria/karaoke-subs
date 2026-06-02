@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Cierra micro-gaps de handoff entre líneas Kanji consecutivas: si el hueco entre
-el fin de una línea y el inicio de la siguiente es <= threshold, adelanta el
-INICIO de la siguiente hasta el fin de la actual (NO alarga la anterior, para no
-desplazar su sync). Los gaps grandes (pausas/interludios reales) no se tocan.
+Closes micro handoff-gaps between consecutive Kanji lines: if the gap between the
+end of one line and the start of the next is <= threshold, moves the START of the
+next line up to the end of the current one (does NOT extend the previous line, so
+its sync is not shifted). Large gaps (real pauses/interludes) are left untouched.
 
-Uso:
+Usage:
     python close-gaps.py <input.ass> <output.ass> [threshold_sec]
 """
 
@@ -55,8 +55,8 @@ def main(input_path: Path, output_path: Path, threshold: float = DEFAULT_THRESHO
     with output_path.open("w", encoding="utf-8") as f:
         f.writelines(lines)
 
-    print(f"✓ {closed} micro-gaps cerrados (threshold {threshold}s). Resto intacto.")
-    print(f"  Escrito: {output_path}")
+    print(f"✓ {closed} micro-gaps closed (threshold {threshold}s). Rest untouched.")
+    print(f"  Written: {output_path}")
 
 
 if __name__ == "__main__":

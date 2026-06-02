@@ -1,23 +1,23 @@
-# Ejemplo: «DAY×DAY» — muestra de 28s
+# Example: «DAY×DAY» — 28s sample
 
-Fragmento del estribillo (56.5s–84.5s) del tema **「DAY×DAY」** de **鈴音ひとみ**
-(Hitonyan), usado como demostración del resultado del toolkit.
+Chorus fragment (56.5s–84.5s) of the song **「DAY×DAY」** by **鈴音ひとみ**
+(Hitonyan), used to demonstrate the toolkit's result.
 
-> Material publicado con permiso de la artista.
+> Material published with the artist's permission.
 
-## Contenido
+## Contents
 
-| Archivo | Qué es |
+| File | What it is |
 |---|---|
-| `preview.mp4` | El resultado: vídeo karaoke trilingüe de 28s (cover + audio + subtítulos quemados). |
-| `clip.flac` | El audio fuente del fragmento (input del pipeline). |
-| `lyrics-final.md` | La letra trilingüe del tramo (formato fuente, ver README principal). |
-| `lyrics-final.ass` | Los subtítulos sincronizados (output, reescalados a 0–28s). |
-| `cover.jpg` | Imagen de fondo del vídeo. |
+| `preview.mp4` | The result: 28s trilingual karaoke video (cover + audio + burned-in subtitles). |
+| `clip.flac` | The source audio of the fragment (pipeline input). |
+| `lyrics-final.md` | The trilingual lyrics of the stretch (source format, see the main README). |
+| `lyrics-final.ass` | The synced subtitles (output, rescaled to 0–28s). |
+| `cover.jpg` | Video background image. |
 
-## Reproducir el render
+## Reproduce the render
 
-Desde esta carpeta, el mismo comando que usa `rebuild.sh`:
+From this folder, the same command that `rebuild.sh` uses:
 
 ```bash
 ffmpeg -loop 1 -framerate 30 -i cover.jpg -i clip.flac \
@@ -27,4 +27,4 @@ ffmpeg -loop 1 -framerate 30 -i cover.jpg -i clip.flac \
   -y preview.mp4
 ```
 
-Necesitas `ffmpeg` y una fuente CJK instalada (`Noto Sans CJK JP`).
+You need `ffmpeg` and a CJK font installed (`Noto Sans CJK JP`).

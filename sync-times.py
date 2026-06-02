@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Sincroniza los tiempos de Romaji + Spanish con los de Kanji en un archivo .ass.
+Syncs the times of Romaji + Spanish with those of Kanji in an .ass file.
 
-Asume que las líneas vienen en orden:
+Assumes the lines come in order:
     Kanji, Romaji, Spanish, Kanji, Romaji, Spanish, ...
 
-Uso:
-    python sync-times.py <ruta-al-lyrics.ass>
+Usage:
+    python sync-times.py <path-to-lyrics.ass>
 
-Ejemplo:
+Example:
     python sync-times.py 01-my-song/lyrics.ass
 """
 
@@ -52,8 +52,8 @@ def sync_ass_times(ass_path: Path) -> None:
     with ass_path.open("w", encoding="utf-8") as f:
         f.writelines(output)
 
-    print(f"✓ Sincronizadas {synced_count} líneas Romaji/Spanish con sus Kanji.")
-    print(f"  Archivo: {ass_path}")
+    print(f"✓ Synced {synced_count} Romaji/Spanish lines with their Kanji.")
+    print(f"  File: {ass_path}")
 
 
 if __name__ == "__main__":
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     path = Path(sys.argv[1])
     if not path.exists():
-        print(f"Error: no existe {path}")
+        print(f"Error: {path} does not exist")
         sys.exit(1)
 
     sync_ass_times(path)

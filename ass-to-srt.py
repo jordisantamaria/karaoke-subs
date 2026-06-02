@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 r"""
-Exporta una capa (Style) de un .ass a .srt para subir como subtítulos a YouTube.
-Excluye Title/Credits (no son lyrics). Limpia tags {\...}.
+Exports one layer (Style) of an .ass to .srt for uploading as subtitles to YouTube.
+Excludes Title/Credits (they are not lyrics). Strips {\...} tags.
 
-Uso:
+Usage:
     python ass-to-srt.py <input.ass> <Style> <output.srt>
-Ej:
+E.g.:
     python ass-to-srt.py 01-my-song/lyrics-final.ass Kanji 01-my-song/01.ja.srt
 """
 import sys, re

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Aísla la pista vocal de un audio con demucs (htdemucs) y la guarda como WAV.
-Usa la API de demucs y guarda con el módulo `wave` estándar (evita el bug de
-torchaudio.save que exige torchcodec). Pensado para correr en CPU.
+Isolates the vocal track from an audio file with demucs (htdemucs) and saves it as WAV.
+Uses the demucs API and saves with the standard `wave` module (avoids the
+torchaudio.save bug that requires torchcodec). Designed to run on CPU.
 
-Uso:
+Usage:
     python isolate-vocals.py <audio_in> <vocals_out.wav>
 """
 
@@ -17,7 +17,7 @@ from demucs.apply import apply_model
 
 
 def load_wav_44k_stereo(path: Path) -> tuple[np.ndarray, int]:
-    """Decodifica cualquier audio a wav 44.1k estéreo int16 vía ffmpeg y lo lee."""
+    """Decodes any audio to 44.1k stereo int16 wav via ffmpeg and reads it."""
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
         tmp_path = tmp.name
     subprocess.run(
@@ -35,7 +35,7 @@ def load_wav_44k_stereo(path: Path) -> tuple[np.ndarray, int]:
 def main(audio_in: Path, vocals_out: Path):
     a, sr = load_wav_44k_stereo(audio_in)
     x = torch.tensor(a.T)  # (2, n)
-    print(f"→ Separando voz con htdemucs ({a.shape[0]/sr:.0f}s de audio, CPU)...")
+    print(f"→ Separating vocals with htdemucs ({a.shape[0]/sr:.0f}s of audio, CPU)...")
     m = get_model("htdemucs")
     m.cpu().eval()
     mean, std = x.mean(), x.std()
@@ -47,7 +47,7 @@ def main(audio_in: Path, vocals_out: Path):
     o.setnchannels(2); o.setsampwidth(2); o.setframerate(sr)
     o.writeframes((voc * 32767).astype(np.int16).tobytes())
     o.close()
-    print(f"✓ Voz aislada -> {vocals_out}")
+    print(f"✓ Vocals isolated -> {vocals_out}")
 
 
 if __name__ == "__main__":

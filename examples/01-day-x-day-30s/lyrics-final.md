@@ -1,7 +1,7 @@
-# DAY×DAY (estribillo) — muestra de 30s
+# DAY×DAY (chorus) — 30s sample
 
 **作詞作曲**: 鈴音ひとみ、渡邊沙志 / **編曲**: 石井裕介
-Fragmento del estribillo (56.5s–84.5s del tema completo).
+Chorus fragment (56.5s–84.5s of the full song).
 
 ---
 

@@ -1,14 +1,14 @@
 #!/bin/bash
-# Regenera lyrics-final.ass + render webm para una pista.
-# Uso:
-#   ./rebuild.sh <directorio-pista>
-# Ejemplo:
+# Regenerates lyrics-final.ass + renders the webm for a track.
+# Usage:
+#   ./rebuild.sh <track-directory>
+# Example:
 #   ./rebuild.sh 01-my-song
 
 set -e
 
 if [ -z "$1" ]; then
-    echo "Uso: $0 <directorio-pista>"
+    echo "Usage: $0 <track-directory>"
     exit 1
 fi
 
@@ -17,29 +17,29 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 if [ ! -d "$TRACK_DIR" ]; then
-    echo "Error: no existe el directorio $TRACK_DIR"
+    echo "Error: directory $TRACK_DIR does not exist"
     exit 1
 fi
 
-# MUSIC_DIR: carpeta con los FLAC fuente (nombrados NN.*.flac).
-# COVER_IMAGE: imagen de fondo del vídeo (default _shared/cover.jpg).
-MUSIC_DIR="${MUSIC_DIR:?define MUSIC_DIR (carpeta con los FLAC nombrados NN.*.flac)}"
+# MUSIC_DIR: folder with the source FLAC files (named NN.*.flac).
+# COVER_IMAGE: video background image (default _shared/cover.jpg).
+MUSIC_DIR="${MUSIC_DIR:?define MUSIC_DIR (folder with the FLAC files named NN.*.flac)}"
 COVER_IMAGE="${COVER_IMAGE:-$SCRIPT_DIR/_shared/cover.jpg}"
 
-# Detecta el FLAC correspondiente
+# Detect the corresponding FLAC
 TRACK_NUM=$(echo "$TRACK_DIR" | cut -d'-' -f1)
 FLAC_FILE=$(ls "${MUSIC_DIR}/${TRACK_NUM}."*.flac 2>/dev/null | head -1)
 
 if [ -z "$FLAC_FILE" ]; then
-    echo "Error: no se encontró el FLAC para pista $TRACK_NUM"
+    echo "Error: no FLAC found for track $TRACK_NUM"
     exit 1
 fi
 
-echo "→ Pista: $TRACK_DIR"
+echo "→ Track: $TRACK_DIR"
 echo "→ FLAC:  $FLAC_FILE"
 echo ""
 
-# 1. Limpiar líneas Kanji vacías (por si Aegisub añadió alguna)
+# 1. Clean up empty Kanji lines (in case Aegisub added any)
 python3 -c "
 import sys
 with open('$TRACK_DIR/lyrics-timed.ass', 'r', encoding='utf-8') as f:
@@ -56,23 +56,23 @@ for line in lines:
 with open('$TRACK_DIR/lyrics-timed.ass', 'w', encoding='utf-8') as f:
     f.writelines(out)
 if removed:
-    print(f'  Eliminadas {removed} líneas Kanji vacías')
+    print(f'  Removed {removed} empty Kanji lines')
 "
 
-# 1b. Cerrar micro-gaps de handoff (<=0.3s) entre líneas Kanji consecutivas
+# 1b. Close micro handoff-gaps (<=0.3s) between consecutive Kanji lines
 python3 close-gaps.py "$TRACK_DIR/lyrics-timed.ass" "$TRACK_DIR/lyrics-timed.ass"
 
 # 2. Merge trilingual
 python3 merge-trilingual.py "$TRACK_DIR/lyrics-timed.ass" "$TRACK_DIR/lyrics-fullbackup.ass" "$TRACK_DIR/lyrics-final.ass"
 
-# 2b. Título + artista en el outro (hueco final sin lyric)
+# 2b. Title + artist in the outro (final gap without lyrics)
 SONG_TITLE=$(echo "${TRACK_DIR##*/}" | sed 's/^[0-9]*-//')
 AUDIO_DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$FLAC_FILE")
 python3 outro-credits.py "$TRACK_DIR/lyrics-final.ass" "$SONG_TITLE" "$AUDIO_DUR"
 
 # 3. Render webm
 echo ""
-echo "→ Renderizando webm (puede tardar ~1-2 min)..."
+echo "→ Rendering webm (may take ~1-2 min)..."
 cd "$TRACK_DIR"
 ffmpeg -loop 1 -framerate 30 -i "$COVER_IMAGE" \
   -i "$FLAC_FILE" \
@@ -82,4 +82,4 @@ ffmpeg -loop 1 -framerate 30 -i "$COVER_IMAGE" \
   -y "${TRACK_DIR##*/}-karaoke.webm" 2>&1 | tail -1
 
 echo ""
-echo "✓ Listo: $SCRIPT_DIR/$TRACK_DIR/${TRACK_DIR##*/}-karaoke.webm"
+echo "✓ Done: $SCRIPT_DIR/$TRACK_DIR/${TRACK_DIR##*/}-karaoke.webm"

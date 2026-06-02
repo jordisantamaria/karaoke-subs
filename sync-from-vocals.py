@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Re-sincroniza las líneas Kanji de un .ass usando una TRANSCRIPCIÓN LIBRE de la voz
-aislada (no forced alignment). whisper transcribe libre la voz limpia (texto+tiempo
-coherentes, sin descarrilar con repeticiones), y luego se mapean esos tiempos al
-texto oficial alineando ambas secuencias de caracteres con difflib (las dos van en
-orden cronológico, así las repeticiones se emparejan por posición).
+Re-syncs the Kanji lines of an .ass using a FREE TRANSCRIPTION of the isolated
+vocals (not forced alignment). whisper freely transcribes the clean vocals (coherent
+text+time, without derailing on repetitions), and then those times are mapped onto
+the official text by aligning both character sequences with difflib (both go in
+chronological order, so repetitions are matched by position).
 
-Uso:
+Usage:
     python sync-from-vocals.py <input.ass> <vocals.wav> <output.ass> [model]
 """
 
@@ -25,7 +25,7 @@ def ass_time(secs: float) -> str:
 
 def main(input_path: Path, vocals: Path, output_path: Path, model_name: str):
     lines = input_path.read_text(encoding="utf-8").splitlines(keepends=True)
-    # líneas Kanji oficiales (idx en archivo, texto)
+    # official Kanji lines (idx in file, text)
     kanji = []
     for i, ln in enumerate(lines):
         if ln.startswith("Dialogue:"):
@@ -34,13 +34,13 @@ def main(input_path: Path, vocals: Path, output_path: Path, model_name: str):
                 kanji.append((i, p[9].strip()))
 
     import whisper
-    print(f"→ Transcripción libre de la voz ('{model_name}', word timestamps)...")
+    print(f"→ Free transcription of the vocals ('{model_name}', word timestamps)...")
     model = whisper.load_model(model_name, device="cpu")
     res = model.transcribe(str(vocals), language="ja", fp16=False,
                            word_timestamps=True, no_speech_threshold=0.6,
                            condition_on_previous_text=False, temperature=0.0)
 
-    # caracteres oídos con tiempo (interpolado dentro de cada palabra)
+    # heard characters with time (interpolated within each word)
     heard = []  # (char, start, end)
     for seg in res["segments"]:
         for w in seg.get("words", []):
@@ -53,14 +53,14 @@ def main(input_path: Path, vocals: Path, output_path: Path, model_name: str):
                 heard.append((ch, s + (e - s) * k / n, s + (e - s) * (k + 1) / n))
     heard_str = "".join(c for c, _, _ in heard)
 
-    # caracteres oficiales con línea de origen
+    # official characters with their source line
     off = []  # (char, kanji_index)
     for ki, (_, txt) in enumerate(kanji):
         for ch in txt:
             off.append((ch, ki))
     off_str = "".join(c for c, _ in off)
 
-    # alinear off_str (a) contra heard_str (b)
+    # align off_str (a) against heard_str (b)
     sm = difflib.SequenceMatcher(None, off_str, heard_str, autojunk=False)
     amap = [None] * len(off)
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
@@ -72,7 +72,7 @@ def main(input_path: Path, vocals: Path, output_path: Path, model_name: str):
             for k in range(si):
                 amap[i1 + k] = (j1 + int(sj * k / si)) if sj > 0 else min(j1, len(heard) - 1)
 
-    # tiempos por línea
+    # times per line
     times = [None] * len(kanji)
     for ki in range(len(kanji)):
         js = [amap[ci] for ci, (_, l) in enumerate(off) if l == ki and amap[ci] is not None]
@@ -80,11 +80,11 @@ def main(input_path: Path, vocals: Path, output_path: Path, model_name: str):
         if js:
             times[ki] = (min(heard[j][1] for j in js), max(heard[j][2] for j in js))
 
-    # rellenar huecos (líneas no oídas) interpolando entre vecinas, y forzar monotonía
+    # fill gaps (lines not heard) by interpolating between neighbors, and force monotonicity
     last = 0.0
     for ki in range(len(kanji)):
         if times[ki] is None:
-            # busca siguiente con tiempo
+            # find the next one with a time
             nxt = next((times[k][0] for k in range(ki + 1, len(kanji)) if times[k]), last + 1.0)
             times[ki] = (last, min(nxt, last + 1.5))
         s, e = times[ki]
@@ -94,8 +94,8 @@ def main(input_path: Path, vocals: Path, output_path: Path, model_name: str):
         times[ki] = (s, e)
         last = s
 
-    # limpieza: recortar solapamientos (end no excede el start de la siguiente)
-    # y capar la última línea (suele inflarse por alucinación de whisper al final)
+    # cleanup: trim overlaps (end does not exceed the start of the next one)
+    # and cap the last line (it usually inflates from whisper's hallucination at the end)
     for k in range(len(times) - 1):
         s0, e0 = times[k]; sn = times[k + 1][0]
         if e0 > sn > s0:
@@ -111,8 +111,8 @@ def main(input_path: Path, vocals: Path, output_path: Path, model_name: str):
         lines[idx] = ",".join(p)
 
     output_path.write_text("".join(lines), encoding="utf-8")
-    print(f"✓ {len(kanji)} líneas sincronizadas ({matched} con match directo de texto).")
-    print(f"  Escrito: {output_path}")
+    print(f"✓ {len(kanji)} lines synced ({matched} with a direct text match).")
+    print(f"  Written: {output_path}")
 
 
 if __name__ == "__main__":

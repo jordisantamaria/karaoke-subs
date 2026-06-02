@@ -1,74 +1,78 @@
-# karaoke-trilingual-subs
+# karaoke-subs
 
-Toolkit para generar vídeos de **karaoke trilingüe** (japonés + romaji + traducción)
-a partir de un álbum de audio y su letra oficial. Sincroniza el timing automáticamente
-aislando la voz con [demucs](https://github.com/adefossez/demucs) y transcribiéndola con
-[Whisper](https://github.com/openai/whisper), luego mapea esos tiempos a tu texto oficial
-y renderiza un `.webm` con subtítulos `.ass`.
+[![Trilingual karaoke demo — DAY×DAY](examples/01-day-x-day-30s/preview-poster.jpg)](examples/01-day-x-day-30s/preview.mp4)
 
-> Pensado para un flujo japonés→romaji→español, pero los estilos y el idioma de
-> traducción son configurables.
+▶ **[Play the 28s clip with audio](examples/01-day-x-day-30s/preview.mp4)** — a sample from «DAY×DAY» by 鈴音ひとみ (used with the artist's permission). Source files in [`examples/01-day-x-day-30s/`](examples/01-day-x-day-30s/).
 
-## Por qué este enfoque
+Toolkit for generating **trilingual karaoke** videos (Japanese + romaji + translation)
+from an audio album and its official lyrics. It synchronizes the timing automatically
+by isolating the vocals with [demucs](https://github.com/adefossez/demucs) and
+transcribing them with [Whisper](https://github.com/openai/whisper), then maps those
+times onto your official text and renders a `.webm` with `.ass` subtitles.
 
-El *forced alignment* clásico se descarrila en canciones con estribillos repetidos y
-"consume" texto en los interludios instrumentales. En su lugar:
+> Designed for a Japanese→romaji→Spanish flow, but the styles and the translation
+> language are configurable.
 
-1. **Aísla la voz** (demucs) → los interludios pasan a ser silencio real.
-2. **Transcripción libre** de la voz limpia (Whisper large-v3 + word timestamps):
-   Whisper elige texto **y** tiempo de forma coherente, sin descarrilarse con repeticiones.
-3. **Mapea** esos tiempos a tu texto oficial alineando ambas secuencias de caracteres
-   con `difflib`. Como las dos van en orden cronológico, las frases repetidas se
-   emparejan por posición.
+## Why this approach
 
-Detalle completo en [`docs/sincronizacion.md`](docs/sincronizacion.md).
+Classic *forced alignment* derails on songs with repeated choruses and "consumes" text
+in the instrumental interludes. Instead:
 
-## Requisitos
+1. **Isolate the vocals** (demucs) → the interludes become real silence.
+2. **Free transcription** of the clean vocals (Whisper large-v3 + word timestamps):
+   Whisper picks text **and** time in a coherent way, without derailing on repetitions.
+3. **Map** those times onto your official text by aligning both character sequences with
+   `difflib`. Since both go in chronological order, the repeated phrases are matched
+   by position.
+
+Full details in [`docs/synchronization.md`](docs/synchronization.md).
+
+## Requirements
 
 - **Python 3.9+**, **ffmpeg/ffprobe**
-- Un venv con `openai-whisper` + `stable-ts` + `demucs` (se recomienda pipx):
+- A venv with `openai-whisper` + `stable-ts` + `demucs` (pipx recommended):
   ```bash
   pipx install openai-whisper
   pipx inject openai-whisper stable-ts demucs
   ```
-- El modelo `large-v3` de Whisper en `~/.cache/whisper/` (se descarga solo al primer uso).
-- Fuente CJK instalada para el render (los estilos usan `Noto Sans CJK JP`).
+- Whisper's `large-v3` model in `~/.cache/whisper/` (downloads itself on first use).
+- A CJK font installed for the render (the styles use `Noto Sans CJK JP`).
 
-## Configuración (variables de entorno)
+## Configuration (environment variables)
 
-| Variable | Obligatoria | Descripción |
+| Variable | Required | Description |
 |---|---|---|
-| `MUSIC_DIR` | sí | Carpeta con los audios fuente, nombrados `<NN>.*.flac` (ej. `01.cancion.flac`). |
-| `WHISPER_PYTHON` | recomendada | Python del venv con whisper/stable-ts/demucs. Default `python3`. |
-| `KARAOKE_ARTIST` | recomendada | Nombre del artista para el título y los créditos del outro. |
-| `COVER_IMAGE` | no | Imagen de fondo del vídeo. Default `_shared/cover.jpg`. |
-| `WHISPER_MODEL` | no | Modelo para `whisper-batch.sh`. Default `medium`. |
-| `WHISPER_LANG` | no | Idioma. Default `ja`. |
+| `MUSIC_DIR` | yes | Folder with the source audio files, named `<NN>.*.flac` (e.g. `01.song.flac`). |
+| `WHISPER_PYTHON` | recommended | The venv's Python with whisper/stable-ts/demucs. Default `python3`. |
+| `KARAOKE_ARTIST` | recommended | Artist name for the title and the outro credits. |
+| `COVER_IMAGE` | no | Video background image. Default `_shared/cover.jpg`. |
+| `WHISPER_MODEL` | no | Model for `whisper-batch.sh`. Default `medium`. |
+| `WHISPER_LANG` | no | Language. Default `ja`. |
 
 ```bash
-export MUSIC_DIR="/ruta/al/album"
+export MUSIC_DIR="/path/to/album"
 export WHISPER_PYTHON=~/.local/share/pipx/venvs/openai-whisper/bin/python
-export KARAOKE_ARTIST="Mi Artista"
+export KARAOKE_ARTIST="My Artist"
 export COVER_IMAGE="$PWD/_shared/cover.jpg"
 ```
 
-## Estructura de trabajo
+## Working structure
 
-Una carpeta por pista, nombrada `<NN>-<slug>` (ej. `01-my-song`). Dentro:
+One folder per track, named `<NN>-<slug>` (e.g. `01-my-song`). Inside:
 
 ```
 01-my-song/
-  lyrics-final.md        # tu letra trilingüe (fuente, ver formato abajo)
-  lyrics.ass             # generado: solo Kanji (input de sync)
-  lyrics-fullbackup.ass  # generado: trilingüe (fuente del merge)
-  lyrics-timed.ass       # generado: Kanji con timing sincronizado
-  lyrics-final.ass       # generado: trilingüe + outro, listo para render
+  lyrics-final.md        # your trilingual lyrics (source, see format below)
+  lyrics.ass             # generated: Kanji only (sync input)
+  lyrics-fullbackup.ass  # generated: trilingual (merge source)
+  lyrics-timed.ass       # generated: Kanji with synced timing
+  lyrics-final.ass       # generated: trilingual + outro, ready to render
   01-my-song-karaoke.webm
 ```
 
-### Formato de `lyrics-final.md`
+### `lyrics-final.md` format
 
-Secciones con `## [nombre]` y, dentro, un bloque por línea cantada:
+Sections with `## [name]` and, inside, one block per sung line:
 
 ````markdown
 ## [Verse 1]
@@ -80,57 +84,57 @@ ES:  Sociedad de información saturada
 ```
 ````
 
-## Flujo de uso
+## Usage flow
 
 ```bash
-# 1. Generar los .ass placeholder desde lyrics-final.md
-python gen-ass.py 01-my-song "Título de la canción" 01 211   # 211 = duración en seg
+# 1. Generate the placeholder .ass files from lyrics-final.md
+python gen-ass.py 01-my-song "Song title" 01 211   # 211 = duration in sec
 
-# 2. Sincronizar el timing por voz aislada (demucs + whisper)
+# 2. Sync the timing via isolated vocals (demucs + whisper)
 ./auto-sync.sh 01-my-song
 
-# 3. (opcional) Afinar a mano en Aegisub sobre lyrics-timed.ass
+# 3. (optional) Fine-tune by hand in Aegisub on lyrics-timed.ass
 
-# 4. Merge trilingüe + outro + render del webm
+# 4. Trilingual merge + outro + webm render
 ./rebuild.sh 01-my-song
 
-# 5. (opcional) Recortar un teaser para redes
+# 5. (optional) Cut a teaser for social media
 ./make-short.sh 01-my-song 00:00:58 30 chorus
 ```
 
-`whisper-batch.sh` transcribe todas las pistas presentes en batch (paso previo opcional).
+`whisper-batch.sh` transcribes all the present tracks in batch (optional prior step).
 
 ## Scripts
 
-| Script | Función |
+| Script | Function |
 |---|---|
-| `gen-ass.py` | Genera `lyrics.ass` (Kanji) y `lyrics-fullbackup.ass` (trilingüe) desde `lyrics-final.md`. |
-| `isolate-vocals.py` | Aísla la voz de un audio con demucs. |
-| `sync-from-vocals.py` | Transcribe la voz aislada y mapea los tiempos al texto oficial. |
-| `auto-sync.sh` | Orquesta aislar voz + sincronizar (no renderiza). |
-| `whisper-to-ass.py` / `whisper-to-ass-v2.py` | Convierte JSON de Whisper a `.ass` con timing. |
-| `align-lyrics.py` | Forced alignment (uso secundario, ver docs). |
-| `close-gaps.py` | Cierra micro-huecos de handoff entre líneas. |
-| `fix-ends.py` / `sync-times.py` | Ajustes de tiempos. |
-| `merge-trilingual.py` | Funde el timing Kanji con las capas romaji/traducción. |
-| `outro-credits.py` | Inserta título + artista en el hueco final. |
-| `rebuild.sh` | Merge + outro + render del `.webm`. |
-| `ass-to-srt.py` | Exporta una capa del `.ass` a `.srt`. |
-| `make-short.sh` | Recorta un clip MP4 para redes. |
+| `gen-ass.py` | Generates `lyrics.ass` (Kanji) and `lyrics-fullbackup.ass` (trilingual) from `lyrics-final.md`. |
+| `isolate-vocals.py` | Isolates the vocals of an audio file with demucs. |
+| `sync-from-vocals.py` | Transcribes the isolated vocals and maps the times onto the official text. |
+| `auto-sync.sh` | Orchestrates vocal isolation + sync (does not render). |
+| `whisper-to-ass.py` / `whisper-to-ass-v2.py` | Converts a Whisper JSON to a timed `.ass`. |
+| `align-lyrics.py` | Forced alignment (secondary use, see docs). |
+| `close-gaps.py` | Closes micro handoff-gaps between lines. |
+| `fix-ends.py` / `sync-times.py` | Time adjustments. |
+| `merge-trilingual.py` | Merges the Kanji timing with the romaji/translation layers. |
+| `outro-credits.py` | Inserts title + artist in the final gap. |
+| `rebuild.sh` | Merge + outro + `.webm` render. |
+| `ass-to-srt.py` | Exports one layer of the `.ass` to `.srt`. |
+| `make-short.sh` | Cuts an MP4 clip for social media. |
 
-## Ejemplo
+## Example
 
-En [`examples/01-day-x-day-30s/`](examples/01-day-x-day-30s/) hay una muestra real de
-28s del tema «DAY×DAY» de 鈴音ひとみ (publicada con permiso de la artista): el
-`preview.mp4` resultante, el `clip.flac` fuente, la letra trilingüe y el `.ass`
-sincronizado. Sirve para ver el formato de entrada y el resultado de un vistazo.
+In [`examples/01-day-x-day-30s/`](examples/01-day-x-day-30s/) there is a real 28s sample
+from the song «DAY×DAY» by 鈴音ひとみ (published with the artist's permission): the
+resulting `preview.mp4`, the source `clip.flac`, the trilingual lyrics and the synced
+`.ass`. It's useful for seeing the input format and the result at a glance.
 
-## Documentación
+## Documentation
 
-- [`docs/sincronizacion.md`](docs/sincronizacion.md) — método de sincronización en detalle.
-- [`docs/extraer-voz-sin-letra.md`](docs/extraer-voz-sin-letra.md) — recuperar recitados/coros que no están en la letra oficial.
+- [`docs/synchronization.md`](docs/synchronization.md) — the synchronization method in detail.
+- [`docs/extracting-vocals-without-lyrics.md`](docs/extracting-vocals-without-lyrics.md) — recovering spoken parts/backing vocals that are not in the official lyrics.
 
-## Licencia
+## License
 
-MIT — ver [`LICENSE`](LICENSE). El toolkit es código propio; el audio, las letras y la
-carátula que proceses con él son material de sus respectivos titulares de derechos.
+MIT — see [`LICENSE`](LICENSE). The toolkit is original code; the audio, the lyrics and
+the cover art you process with it belong to their respective rights holders.

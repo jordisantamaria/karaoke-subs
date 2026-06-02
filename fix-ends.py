@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Post-procesado: ajusta end-times de líneas Kanji en .ass:
+Post-processing: adjusts end-times of Kanji lines in an .ass:
 - end = min(next_start - 0.1, start + max_duration)
-- Si una línea está fuera de orden (start menor que el anterior), interpola.
+- If a line is out of order (start earlier than the previous one), interpolate.
 
-Uso:
+Usage:
     python fix-ends.py <input.ass> <output.ass> [max_duration_sec]
 """
 
@@ -50,7 +50,7 @@ def main(input_path: Path, output_path: Path, max_dur: float = 8.0):
             if next_valid:
                 kanji_data[i][1] = prev + (next_valid - prev) / 2
                 kanji_data[i][2] = kanji_data[i][1] + 3
-                print(f"  ⚠️  Interpolado start de línea {i}: {kanji_data[i][1]:.2f}s")
+                print(f"  ⚠️  Interpolated start of line {i}: {kanji_data[i][1]:.2f}s")
 
     # Step 2: adjust end times with cap
     for i in range(len(kanji_data)):
@@ -71,8 +71,8 @@ def main(input_path: Path, output_path: Path, max_dur: float = 8.0):
     with output_path.open("w", encoding="utf-8") as f:
         f.writelines(lines)
 
-    print(f"\n✓ {len(kanji_data)} líneas ajustadas. Max duración por línea: {max_dur}s")
-    print(f"  Escrito: {output_path}")
+    print(f"\n✓ {len(kanji_data)} lines adjusted. Max duration per line: {max_dur}s")
+    print(f"  Written: {output_path}")
 
 
 if __name__ == "__main__":
