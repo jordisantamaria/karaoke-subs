@@ -118,6 +118,13 @@ python gen-ass.py 01-my-song "Título de la canción" 01 211   # 211 = duración
 | `ass-to-srt.py` | Exporta una capa del `.ass` a `.srt`. |
 | `make-short.sh` | Recorta un clip MP4 para redes. |
 
+## Ejemplo
+
+En [`examples/01-day-x-day-30s/`](examples/01-day-x-day-30s/) hay una muestra real de
+28s del tema «DAY×DAY» de 鈴音ひとみ (publicada con permiso de la artista): el
+`preview.mp4` resultante, el `clip.flac` fuente, la letra trilingüe y el `.ass`
+sincronizado. Sirve para ver el formato de entrada y el resultado de un vistazo.
+
 ## Documentación
 
 - [`docs/sincronizacion.md`](docs/sincronizacion.md) — método de sincronización en detalle.

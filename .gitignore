@@ -31,3 +31,6 @@ venv/
 
 # OS
 .DS_Store
+
+# El example de demostración SÍ se versiona (clip + render + .ass)
+!examples/**
